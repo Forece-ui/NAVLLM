@@ -26,5 +26,4 @@ python video_sender.py --input example.mp4 --server-host 127.0.0.1 --ports 5001 
 
 ## 来源与许可
 
-- ABR 基线和模型代码源自 [NetLLM](https://github.com/duowuyms/NetLLM)，其 MIT 声明保留在 [LICENSE](LICENSE) 中。
 - 内置播放器脚本来自 [hls.js v1.6.13](https://github.com/video-dev/hls.js/tree/v1.6.13)，见 [版权声明](licenses/hls.js.txt) 和 [Apache 2.0 许可证](licenses/Apache-2.0.txt)。
