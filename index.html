@@ -1,0 +1,2417 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark" data-mode="demo">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NAVLLM ABR 控制台</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg0: #050914;
+      --bg1: #071327;
+      --bg2: #0d1c38;
+      --panel: rgba(12, 24, 48, .66);
+      --panel2: rgba(15, 31, 62, .86);
+      --panel3: rgba(255,255,255,.060);
+      --ink: #eef7ff;
+      --ink-strong: #ffffff;
+      --muted: #92a8cb;
+      --muted2: #637da4;
+      --line: rgba(167, 202, 255, .15);
+      --line2: rgba(167, 202, 255, .28);
+      --field: rgba(4, 13, 29, .66);
+      --field-hover: rgba(8, 22, 48, .86);
+      --blue: #5b8cff;
+      --cyan: #22e6ff;
+      --teal: #25f4b5;
+      --violet: #a986ff;
+      --pink: #ff58bf;
+      --red: #ff5577;
+      --amber: #ffc75a;
+      --green: #35e58a;
+      --shadow: 0 30px 90px rgba(0,0,0,.42);
+      --shadow-soft: 0 18px 54px rgba(0,0,0,.28);
+      --blur: blur(24px) saturate(165%);
+      --radius-xl: 30px;
+      --radius-lg: 22px;
+      --radius-md: 15px;
+      --grid-opacity: .052;
+      --noise-opacity: .070;
+    }
+
+    html[data-theme="light"] {
+      color-scheme: light;
+      --bg0: #edf5ff;
+      --bg1: #f8fbff;
+      --bg2: #e7f0ff;
+      --panel: rgba(255, 255, 255, .70);
+      --panel2: rgba(255, 255, 255, .92);
+      --panel3: rgba(42, 94, 168, .060);
+      --ink: #102033;
+      --ink-strong: #07111f;
+      --muted: #536b88;
+      --muted2: #7a93b0;
+      --line: rgba(50, 94, 160, .15);
+      --line2: rgba(50, 94, 160, .27);
+      --field: rgba(255,255,255,.78);
+      --field-hover: rgba(255,255,255,.96);
+      --blue: #2d68ff;
+      --cyan: #00a7d8;
+      --teal: #00b98f;
+      --violet: #7457ff;
+      --pink: #e13da1;
+      --red: #e64062;
+      --amber: #c77a00;
+      --green: #0c9d5d;
+      --shadow: 0 28px 74px rgba(43, 75, 125, .18);
+      --shadow-soft: 0 16px 42px rgba(43, 75, 125, .14);
+      --blur: blur(24px) saturate(150%);
+      --grid-opacity: .078;
+      --noise-opacity: .036;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: Inter, "SF Pro Display", "PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Segoe UI", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+      background:
+        radial-gradient(circle at 6% 7%, color-mix(in srgb, var(--cyan) 20%, transparent), transparent 27%),
+        radial-gradient(circle at 88% -2%, color-mix(in srgb, var(--violet) 24%, transparent), transparent 31%),
+        radial-gradient(circle at 53% 108%, color-mix(in srgb, var(--teal) 16%, transparent), transparent 31%),
+        linear-gradient(135deg, var(--bg0), var(--bg1) 45%, var(--bg2));
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -4;
+      pointer-events: none;
+      background-image:
+        linear-gradient(color-mix(in srgb, var(--ink) 100%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--ink) 100%, transparent) 1px, transparent 1px);
+      background-size: 44px 44px;
+      opacity: var(--grid-opacity);
+      mask-image: radial-gradient(circle at 50% 18%, #000 0%, transparent 76%);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -45%;
+      z-index: -3;
+      pointer-events: none;
+      background:
+        conic-gradient(from 80deg at 50% 50%,
+          color-mix(in srgb, var(--blue) 17%, transparent),
+          color-mix(in srgb, var(--cyan) 11%, transparent),
+          color-mix(in srgb, var(--pink) 12%, transparent),
+          color-mix(in srgb, var(--teal) 12%, transparent),
+          color-mix(in srgb, var(--blue) 17%, transparent));
+      filter: blur(86px);
+      animation: aurora 28s linear infinite;
+      opacity: .96;
+    }
+
+    .grain {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+      opacity: var(--noise-opacity);
+      mix-blend-mode: overlay;
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    .orb {
+      position: fixed;
+      z-index: -1;
+      pointer-events: none;
+      border-radius: 999px;
+      filter: blur(1px);
+      opacity: .68;
+      background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.90), color-mix(in srgb, var(--cyan) 72%, transparent) 26%, transparent 72%);
+      box-shadow: 0 0 44px color-mix(in srgb, var(--cyan) 36%, transparent);
+      animation: floatOrb 10s ease-in-out infinite;
+    }
+
+    .orb.o1 { width: 8px; height: 8px; left: 9%; top: 24%; animation-delay: .1s; }
+    .orb.o2 { width: 6px; height: 6px; right: 12%; top: 34%; animation-delay: 1.4s; }
+    .orb.o3 { width: 10px; height: 10px; left: 61%; bottom: 14%; animation-delay: 2.7s; }
+
+    @keyframes aurora {
+      from { transform: rotate(0deg) scale(1); }
+      to { transform: rotate(360deg) scale(1.08); }
+    }
+
+    @keyframes floatOrb {
+      0%, 100% { transform: translate3d(0, 0, 0); opacity: .42; }
+      45% { transform: translate3d(14px, -20px, 0); opacity: .82; }
+    }
+
+    ::selection { color: var(--bg0); background: var(--cyan); }
+
+    .topbar {
+      height: 82px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items: center;
+      gap: 18px;
+      padding: 0 30px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--panel2) 84%, transparent);
+      backdrop-filter: var(--blur);
+      box-shadow: 0 12px 36px rgba(0,0,0,.12);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 46px;
+      height: 46px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 17px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 950;
+      letter-spacing: .8px;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--cyan), var(--blue) 44%, var(--violet));
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.25) inset,
+        0 18px 36px color-mix(in srgb, var(--blue) 28%, transparent),
+        0 0 42px color-mix(in srgb, var(--cyan) 20%, transparent);
+    }
+
+    .mark::after {
+      content: "";
+      position: absolute;
+      inset: -60%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.52), transparent);
+      transform: rotate(24deg) translateX(-88%);
+      animation: shine 4.8s ease-in-out infinite;
+    }
+
+    @keyframes shine {
+      0%, 58% { transform: rotate(24deg) translateX(-92%); }
+      74%, 100% { transform: rotate(24deg) translateX(92%); }
+    }
+
+    .brand-title {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .brand-title span:first-child {
+      color: var(--ink-strong);
+      font-size: 18px;
+      line-height: 1.1;
+      font-weight: 950;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand-title span:last-child {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .78px;
+      text-transform: uppercase;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .theme-toggle {
+      width: 61px;
+      height: 34px;
+      border: 1px solid var(--line2);
+      border-radius: 999px;
+      background: var(--panel3);
+      padding: 3px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background .2s ease, border-color .2s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.11);
+    }
+
+    .theme-thumb {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 13px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      transition: transform .25s cubic-bezier(.2,.8,.2,1), background .25s ease;
+      box-shadow: 0 8px 20px color-mix(in srgb, var(--blue) 28%, transparent);
+    }
+
+    html[data-theme="light"] .theme-thumb {
+      transform: translateX(27px);
+      background: linear-gradient(135deg, #ffc857, #ff8f5a);
+    }
+
+    .status-pill {
+      min-width: 92px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 9px 14px;
+      border: 1px solid var(--line2);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--panel3);
+      font-size: 13px;
+      font-weight: 800;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 10px 26px rgba(0,0,0,.10);
+    }
+
+    .status-pill::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--muted2);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--muted2) 14%, transparent);
+    }
+
+    .status-pill.running {
+      color: var(--green);
+      border-color: color-mix(in srgb, var(--green) 40%, transparent);
+      background: color-mix(in srgb, var(--green) 10%, transparent);
+    }
+
+    .status-pill.running::before {
+      background: var(--green);
+      box-shadow:
+        0 0 0 4px color-mix(in srgb, var(--green) 16%, transparent),
+        0 0 20px color-mix(in srgb, var(--green) 90%, transparent);
+      animation: pulse 1.35s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(.72); opacity: .62; }
+    }
+
+    .wrap {
+      max-width: 1880px;
+      min-height: calc(100vh - 82px);
+      margin: 0 auto;
+      padding: 22px;
+      display: grid;
+      grid-template-columns: 430px minmax(0, 1fr);
+      gap: 22px;
+      align-items: stretch;
+    }
+
+    .control-panel {
+      position: sticky;
+      top: 104px;
+      height: calc(100vh - 126px);
+      min-height: 760px;
+      align-self: stretch;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .control-panel .form {
+      flex: 1;
+    }
+
+    .control-panel::-webkit-scrollbar { width: 9px; }
+    .control-panel::-webkit-scrollbar-track { background: transparent; }
+    .control-panel::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--blue) 34%, transparent);
+      border-radius: 99px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    .panel, .card, .hero {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(180deg, color-mix(in srgb, #fff 10%, transparent), transparent 64%),
+        var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--blur);
+    }
+
+    .panel { border-radius: var(--radius-xl); }
+    .card, .hero { border-radius: var(--radius-lg); }
+
+    .panel::before, .card::before, .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.20), transparent 27%),
+        radial-gradient(circle at 102% -2%, color-mix(in srgb, var(--cyan) 13%, transparent), transparent 34%);
+      opacity: .78;
+    }
+
+    .panel::after, .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(135deg,
+        color-mix(in srgb, var(--cyan) 42%, transparent),
+        transparent 28%,
+        color-mix(in srgb, var(--violet) 24%, transparent) 72%,
+        color-mix(in srgb, var(--teal) 30%, transparent));
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: .68;
+    }
+
+    .panel > *, .card > *, .hero > * { position: relative; z-index: 1; }
+
+    .panel h2 {
+      margin: 0;
+      padding: 18px 18px 12px;
+      color: var(--ink-strong);
+      font-size: 15px;
+      font-weight: 950;
+      letter-spacing: .16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel h2::before {
+      content: "";
+      width: 7px;
+      height: 18px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--cyan), var(--violet));
+      box-shadow: 0 0 18px color-mix(in srgb, var(--cyan) 36%, transparent);
+    }
+
+    .form {
+      padding: 0 16px 18px;
+      display: grid;
+      gap: 13px;
+    }
+
+    .control-section {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--panel3) 92%, transparent), color-mix(in srgb, var(--panel2) 34%, transparent));
+      display: grid;
+      gap: 11px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.055),
+        0 10px 26px rgba(0,0,0,.055);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 1px;
+      color: var(--ink-strong);
+      font-size: 12px;
+      font-weight: 920;
+      letter-spacing: .18px;
+    }
+
+    .section-title span:first-child {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .section-title span:first-child::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--cyan);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--cyan) 70%, transparent);
+    }
+
+    .section-title span:last-child {
+      color: var(--muted2);
+      font-size: 10px;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 760;
+      letter-spacing: .10px;
+    }
+
+    input, select {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 0 13px;
+      color: var(--ink);
+      background: var(--field);
+      outline: none;
+      font-size: 13px;
+      transition: border-color .18s ease, box-shadow .18s ease, background .18s ease, transform .18s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.075);
+    }
+
+    input:hover, select:hover {
+      border-color: color-mix(in srgb, var(--cyan) 38%, transparent);
+      background: var(--field-hover);
+    }
+
+    input:focus, select:focus {
+      border-color: color-mix(in srgb, var(--cyan) 72%, transparent);
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--cyan) 14%, transparent),
+        0 0 26px color-mix(in srgb, var(--cyan) 14%, transparent);
+      background: var(--field-hover);
+    }
+
+    input::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    button {
+      height: 42px;
+      border: 0;
+      border-radius: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      font-weight: 930;
+      letter-spacing: .20px;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+      box-shadow: 0 15px 32px color-mix(in srgb, var(--blue) 24%, transparent);
+    }
+
+    button:hover {
+      transform: translateY(-1.5px);
+      filter: brightness(1.07);
+      box-shadow: 0 20px 42px color-mix(in srgb, var(--cyan) 22%, transparent);
+    }
+
+    button:active { transform: translateY(0); filter: brightness(.98); }
+
+    button.secondary {
+      color: var(--ink-strong);
+      background: linear-gradient(135deg, var(--panel3), color-mix(in srgb, var(--panel2) 80%, transparent));
+      border: 1px solid var(--line2);
+      box-shadow: 0 12px 28px rgba(0,0,0,.10);
+    }
+
+    button.danger {
+      background: linear-gradient(135deg, var(--red), #ff8a5c);
+      box-shadow: 0 15px 32px color-mix(in srgb, var(--red) 22%, transparent);
+    }
+
+    .main {
+      display: grid;
+      gap: 22px;
+      min-width: 0;
+    }
+
+    .hero {
+      min-height: 156px;
+      padding: 20px 22px;
+      display: grid;
+      grid-template-columns: minmax(720px, 1.45fr) minmax(260px, .55fr);
+      gap: 18px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .hero-copy {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .eyebrow {
+      width: fit-content;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border: 1px solid var(--line2);
+      border-radius: 999px;
+      background: var(--panel3);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .65px;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--cyan);
+      box-shadow: 0 0 14px var(--cyan);
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(25px, 2.1vw, 36px);
+      line-height: 1.08;
+      letter-spacing: -.75px;
+      color: var(--ink-strong);
+      white-space: nowrap;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(90deg, var(--cyan), var(--blue), var(--violet));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 860px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.72;
+      font-weight: 680;
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 116px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--cyan) 16%, transparent), transparent 52%),
+        linear-gradient(135deg, color-mix(in srgb, var(--panel3) 100%, transparent), transparent);
+      overflow: hidden;
+    }
+
+    .radar {
+      position: relative;
+      width: 126px;
+      height: 126px;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--cyan) 38%, transparent);
+      background:
+        radial-gradient(circle, transparent 0 23%, color-mix(in srgb, var(--cyan) 18%, transparent) 24% 24.8%, transparent 25% 47%, color-mix(in srgb, var(--cyan) 16%, transparent) 48% 48.6%, transparent 49%),
+        conic-gradient(from 0deg, color-mix(in srgb, var(--cyan) 36%, transparent), transparent 34%);
+      box-shadow: 0 0 44px color-mix(in srgb, var(--cyan) 18%, transparent);
+      animation: radarSpin 4.8s linear infinite;
+    }
+
+    .radar::before,
+    .radar::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 14px var(--teal);
+    }
+
+    .radar::before { width: 8px; height: 8px; left: 31px; top: 45px; }
+    .radar::after { width: 6px; height: 6px; right: 38px; bottom: 32px; background: var(--violet); box-shadow: 0 0 14px var(--violet); }
+
+    @keyframes radarSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(140px, 1fr));
+      gap: 15px;
+    }
+
+    .card {
+      min-height: 120px;
+      padding: 17px;
+      box-shadow: var(--shadow-soft);
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: color-mix(in srgb, var(--cyan) 36%, transparent);
+      box-shadow:
+        0 28px 70px rgba(0,0,0,.20),
+        0 0 34px color-mix(in srgb, var(--cyan) 12%, transparent);
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      right: -60px;
+      top: -64px;
+      border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--cyan) 28%, transparent), transparent 68%);
+      pointer-events: none;
+    }
+
+    .card:nth-child(2)::after { background: radial-gradient(circle, color-mix(in srgb, var(--teal) 25%, transparent), transparent 68%); }
+    .card:nth-child(3)::after { background: radial-gradient(circle, color-mix(in srgb, var(--amber) 25%, transparent), transparent 68%); }
+    .card:nth-child(4)::after { background: radial-gradient(circle, color-mix(in srgb, var(--red) 24%, transparent), transparent 68%); }
+    .card:nth-child(5)::after { background: radial-gradient(circle, color-mix(in srgb, var(--violet) 26%, transparent), transparent 68%); }
+
+    .card .label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 780;
+      letter-spacing: .12px;
+    }
+
+    .card .value {
+      margin-top: 13px;
+      color: var(--ink-strong);
+      font-size: 30px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: -.35px;
+      white-space: nowrap;
+      text-shadow: 0 0 20px color-mix(in srgb, var(--blue) 16%, transparent);
+    }
+
+    .card .sub {
+      margin-top: 9px;
+      color: var(--muted2);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .chart-panel { padding: 16px; }
+
+    .chart-title {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .chart-title h2 { padding: 0; }
+
+    .legend {
+      display:flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel3);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      display:inline-block;
+      margin-right: 5px;
+      border-radius: 99px;
+      box-shadow: 0 0 14px currentColor;
+    }
+
+    canvas {
+      width: 100%;
+      height: 312px;
+      display:block;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 10% 10%, color-mix(in srgb, var(--blue) 12%, transparent), transparent 26%),
+        linear-gradient(180deg, color-mix(in srgb, var(--panel2) 88%, transparent), color-mix(in srgb, var(--bg0) 88%, transparent));
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.08),
+        0 18px 45px rgba(0,0,0,.16);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(360px, .82fr);
+      gap: 22px;
+    }
+
+    .comparison-panel { padding-bottom: 17px; }
+
+    .comparison-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding-right: 18px;
+    }
+
+    .comparison-head h2 { padding-right: 0; }
+
+    .comparison-scope {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 780;
+      letter-spacing: .12px;
+      text-align: right;
+    }
+
+    .comparison-scope::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      display: inline-block;
+      margin-right: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--green) 72%, transparent);
+      animation: pulse 1.35s ease-in-out infinite;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      padding: 0 16px;
+    }
+
+    .algorithm-card {
+      --algo-color: var(--blue);
+      min-width: 0;
+      padding: 15px;
+      border: 1px solid color-mix(in srgb, var(--algo-color) 28%, var(--line));
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--algo-color) 17%, transparent), transparent 36%),
+        linear-gradient(145deg, var(--panel3), color-mix(in srgb, var(--panel2) 52%, transparent));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 13px 34px rgba(0,0,0,.10);
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+
+    .algorithm-card:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--algo-color) 56%, transparent);
+    }
+
+    .algorithm-card.netllm { --algo-color: var(--cyan); }
+    .algorithm-card.bba { --algo-color: var(--teal); }
+    .algorithm-card.mpc { --algo-color: var(--violet); }
+
+    .algorithm-card.is-leader {
+      border-color: color-mix(in srgb, var(--algo-color) 72%, transparent);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.08),
+        0 16px 40px color-mix(in srgb, var(--algo-color) 12%, transparent);
+    }
+
+    .algorithm-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 13px;
+    }
+
+    .algorithm-name {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--ink-strong);
+      font-size: 15px;
+      font-weight: 950;
+    }
+
+    .algorithm-name::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--algo-color);
+      box-shadow: 0 0 14px var(--algo-color);
+    }
+
+    .algorithm-badge {
+      min-height: 24px;
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: var(--panel3);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .is-leader .algorithm-badge {
+      color: var(--algo-color);
+      border-color: color-mix(in srgb, var(--algo-color) 40%, transparent);
+      background: color-mix(in srgb, var(--algo-color) 9%, transparent);
+    }
+
+    .algorithm-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 9px;
+    }
+
+    .algorithm-metric {
+      min-width: 0;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--field) 72%, transparent);
+    }
+
+    .algorithm-metric span {
+      display: block;
+      color: var(--muted2);
+      font-size: 10px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .algorithm-metric strong {
+      display: block;
+      margin-top: 6px;
+      overflow: hidden;
+      color: var(--ink-strong);
+      font-size: 17px;
+      font-weight: 930;
+      line-height: 1;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .algorithm-metric small {
+      margin-left: 3px;
+      color: var(--muted2);
+      font-size: 9px;
+      font-weight: 720;
+    }
+
+    .algorithm-card-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 11px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 750;
+    }
+
+    .comparison-empty {
+      grid-column: 1 / -1;
+      padding: 26px;
+      border: 1px dashed var(--line2);
+      border-radius: 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: var(--ink);
+      font-size: 12px;
+    }
+
+    th, td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    th:first-child, td:first-child { text-align: left; }
+
+    th {
+      color: var(--muted);
+      font-weight: 920;
+      background: color-mix(in srgb, var(--panel2) 70%, transparent);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      backdrop-filter: blur(16px);
+    }
+
+    tbody tr { transition: background .16s ease, color .16s ease; }
+    tbody tr:hover { background: color-mix(in srgb, var(--cyan) 8%, transparent); }
+
+    .table-box {
+      max-height: 364px;
+      overflow: auto;
+      border-top: 1px solid var(--line);
+    }
+
+    .table-box::-webkit-scrollbar, pre::-webkit-scrollbar, .control-panel::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    .table-box::-webkit-scrollbar-track, pre::-webkit-scrollbar-track {
+      background: color-mix(in srgb, var(--muted) 8%, transparent);
+      border-radius: 99px;
+    }
+
+    .table-box::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb {
+      background: color-mix(in srgb, var(--blue) 42%, transparent);
+      border-radius: 99px;
+      border: 2px solid color-mix(in srgb, var(--panel2) 75%, transparent);
+    }
+
+    .params {
+      padding: 0 16px 16px;
+      display:grid;
+      gap: 10px;
+    }
+
+    .param {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: linear-gradient(135deg, var(--panel3), color-mix(in srgb, var(--panel2) 54%, transparent));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    .param b {
+      display:block;
+      margin-bottom: 7px;
+      color: var(--ink-strong);
+      font-size: 12px;
+    }
+
+    .param code {
+      color: var(--cyan);
+      word-break: break-all;
+      line-height: 1.52;
+    }
+
+    .cmd-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+      padding: 0 16px 16px;
+    }
+
+    .cmd {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 13px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--panel3);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      word-break: break-all;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .copy-btn {
+      width: 78px;
+      height: auto;
+      min-height: 42px;
+      flex: 0 0 auto;
+    }
+
+    pre {
+      margin: 0;
+      padding: 15px 16px;
+      min-height: 238px;
+      max-height: 354px;
+      overflow: auto;
+      border-top: 1px solid var(--line);
+      border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+      background:
+        radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--cyan) 12%, transparent), transparent 30%),
+        color-mix(in srgb, var(--bg0) 94%, #000);
+      color: color-mix(in srgb, var(--ink) 94%, var(--cyan));
+      font-size: 12px;
+      line-height: 1.62;
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    }
+
+    @media (max-width: 1480px) {
+      .wrap { grid-template-columns: 408px minmax(0, 1fr); }
+      .hero { grid-template-columns: minmax(620px, 1.25fr) minmax(220px, .75fr); }
+      .hero h1 { font-size: clamp(23px, 1.9vw, 31px); }
+      .cards { grid-template-columns: repeat(3, minmax(140px, 1fr)); }
+    }
+
+    @media (max-width: 1280px) {
+      .hero h1 { white-space: normal; }
+    }
+
+    @media (max-width: 1120px) {
+      .wrap, .split, .hero { grid-template-columns: 1fr; }
+      .control-panel { position: relative; top: auto; height: auto; min-height: 0; max-height: none; }
+      .hero h1 { white-space: normal; }
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .comparison-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .topbar { padding: 0 16px; }
+      .brand-title span:first-child { font-size: 15px; }
+      .brand-title span:last-child, .status-pill { display: none; }
+      .wrap { padding: 14px; }
+      .cards { grid-template-columns: 1fr; }
+      .grid2, .actions, .cmd-row { grid-template-columns: 1fr; flex-direction: column; }
+      .chart-title { align-items: flex-start; flex-direction: column; }
+      .copy-btn { width: 100%; }
+      .comparison-head { align-items: flex-start; flex-direction: column; padding-right: 16px; }
+      .comparison-scope { padding-left: 18px; text-align: left; }
+    }
+
+    /* ===== Full-visibility refinement: avoid clipping while keeping elegant layout ===== */
+    html, body {
+      overflow-x: hidden !important;
+    }
+
+    .wrap {
+      width: min(1880px, 100%) !important;
+      min-height: auto !important;
+      grid-template-columns: minmax(380px, 420px) minmax(0, 1fr) !important;
+      align-items: start !important;
+    }
+
+    .control-panel {
+      position: relative !important;
+      top: auto !important;
+      height: auto !important;
+      min-height: calc(100vh - 126px) !important;
+      max-height: none !important;
+      overflow: visible !important;
+      align-self: start !important;
+      display: block !important;
+    }
+
+    .control-panel .form {
+      flex: none !important;
+    }
+
+    .hero {
+      grid-template-columns: minmax(0, 1fr) 240px !important;
+      align-items: center !important;
+      min-height: 154px !important;
+      overflow: visible !important;
+    }
+
+    .hero h1 {
+      font-size: clamp(23px, 1.78vw, 32px) !important;
+      line-height: 1.14 !important;
+      white-space: normal !important;
+      text-wrap: balance;
+      overflow: visible !important;
+    }
+
+    @media (min-width: 1500px) {
+      .hero h1 {
+        white-space: nowrap !important;
+      }
+    }
+
+    .hero p,
+    .brand-title span,
+    .cmd,
+    .param code,
+    input {
+      overflow-wrap: anywhere;
+    }
+
+    .control-section {
+      overflow: visible !important;
+    }
+
+    .main,
+    .panel,
+    .card,
+    .hero,
+    .split > *,
+    .chart-panel {
+      min-width: 0 !important;
+    }
+
+    .table-box {
+      overflow: auto !important;
+    }
+
+    @media (max-width: 1180px) {
+      .wrap,
+      .split,
+      .hero {
+        grid-template-columns: 1fr !important;
+      }
+
+      .control-panel {
+        min-height: 0 !important;
+      }
+
+      .hero h1 {
+        white-space: normal !important;
+      }
+
+      .hero-visual {
+        display: none !important;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .wrap {
+        padding: 14px !important;
+      }
+
+      .grid2,
+      .actions {
+        grid-template-columns: 1fr !important;
+      }
+
+      .cmd-row {
+        flex-direction: column !important;
+      }
+
+      .copy-btn {
+        width: 100% !important;
+        height: 42px !important;
+      }
+    }
+
+
+    /* ===== Table height alignment refinement ===== */
+    .table-box {
+      height: 364px !important;
+      min-height: 364px !important;
+      max-height: 364px !important;
+      overflow: auto !important;
+    }
+
+    .table-box table {
+      min-height: 100%;
+    }
+
+    @media (max-width: 720px) {
+      .table-box {
+        height: 320px !important;
+        min-height: 320px !important;
+        max-height: 320px !important;
+      }
+    }
+
+
+    /* ===== Fill the blank space in the detail table with elegant live placeholders ===== */
+    .table-box {
+      height: 364px !important;
+      min-height: 364px !important;
+      max-height: 364px !important;
+      overflow: auto !important;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--soft) 82%, transparent), transparent 65%),
+        color-mix(in srgb, var(--panel2) 12%, transparent);
+    }
+
+    .table-box table {
+      height: 100%;
+      min-height: 100%;
+      table-layout: fixed;
+    }
+
+    #rows tr {
+      height: 36px;
+    }
+
+    #rows tr.data-row td {
+      height: 36px;
+    }
+
+    #rows tr.filler-row td {
+      height: 36px;
+      text-align: center;
+      color: color-mix(in srgb, var(--muted2) 72%, transparent);
+      border-bottom: 1px dashed color-mix(in srgb, var(--line2) 72%, transparent);
+      background:
+        linear-gradient(90deg,
+          transparent,
+          color-mix(in srgb, var(--cyan) 5%, transparent) 42%,
+          color-mix(in srgb, var(--violet) 4%, transparent) 58%,
+          transparent);
+    }
+
+    .filler-cell {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 760;
+      letter-spacing: .18px;
+      opacity: .72;
+      white-space: nowrap;
+    }
+
+    .filler-cell::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--cyan);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--cyan) 70%, transparent);
+      animation: fillerPulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes fillerPulse {
+      0%, 100% { transform: scale(1); opacity: .85; }
+      50% { transform: scale(.55); opacity: .42; }
+    }
+
+    /* ===== Top-level page tabs and sender/receiver video comparison ===== */
+    .page-tabs {
+      width: auto;
+      margin: 0;
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+      border: 1px solid var(--line2);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--panel3) 82%, transparent);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 10px 28px rgba(0,0,0,.10);
+    }
+
+    .page-tab {
+      width: auto;
+      height: 36px;
+      min-width: 112px;
+      padding: 0 18px;
+      color: var(--muted);
+      background: transparent;
+      border: 0;
+      border-radius: 999px;
+      box-shadow: none;
+    }
+
+    .page-tab.active {
+      color: #fff;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      border-color: transparent;
+      box-shadow: 0 8px 22px color-mix(in srgb, var(--blue) 28%, transparent), inset 0 1px 0 rgba(255,255,255,.30);
+    }
+
+    .page-view { display: none; }
+    .page-view.active { display: block; }
+
+    .video-page {
+      width: min(1880px, 100%);
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .video-shell { padding: 22px; }
+
+    .video-page-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .video-page-head h1 {
+      margin: 0 0 8px;
+      color: var(--ink-strong);
+      font-size: clamp(24px, 2vw, 34px);
+    }
+
+    .video-page-head p { margin: 0; color: var(--muted); }
+
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+
+    .video-card {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: linear-gradient(145deg, var(--panel3), transparent);
+    }
+
+    .video-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .video-card h2 { padding: 0; }
+
+    .stream-state {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .stream-state.ready { color: var(--green); }
+    .stream-state.error { color: var(--red); }
+
+    .video-frame {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid var(--line2);
+      border-radius: 18px;
+      background: #02050b;
+      box-shadow: inset 0 0 50px rgba(0,0,0,.42);
+    }
+
+    .video-frame video,
+    .video-frame img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .video-placeholder {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      color: var(--muted);
+      text-align: center;
+      pointer-events: none;
+      background: radial-gradient(circle, color-mix(in srgb, var(--blue) 10%, transparent), transparent 60%);
+    }
+
+    .video-source-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .video-source-row input { min-width: 0; }
+    .video-source-row button { padding: 0 18px; }
+
+    pre.monitor-log {
+      width: 100%;
+      min-height: 0;
+      max-height: none;
+      aspect-ratio: 16 / 9;
+      border: 1px solid var(--line2);
+      border-radius: 18px;
+    }
+
+    .results-page {
+      width: min(1880px, 100%);
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .results-shell {
+      padding: 18px;
+      min-height: calc(100vh - 126px);
+    }
+
+    .results-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .results-title h1 {
+      margin: 0 0 6px;
+      color: var(--ink-strong);
+      font-size: clamp(22px, 1.8vw, 30px);
+    }
+
+    .results-title p { margin: 0; color: var(--muted); font-size: 13px; }
+    .results-actions { display: flex; gap: 10px; flex: 0 0 auto; }
+    .results-actions button { width: auto; padding: 0 18px; }
+    [hidden] { display: none !important; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+
+    .results-frame-wrap {
+      position: relative;
+      height: calc(100vh - 222px);
+      min-height: 620px;
+      overflow: hidden;
+      border: 1px solid var(--line2);
+      border-radius: 22px;
+      background: var(--field);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+    }
+
+    .results-frame {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border: 0;
+      background: #fff;
+    }
+
+    @media (max-width: 900px) {
+      .video-grid { grid-template-columns: 1fr; }
+      .video-page-head { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media (max-width: 720px) {
+      .video-page { padding-left: 14px; padding-right: 14px; }
+      .results-page { padding: 14px; }
+      .page-tabs { grid-column: 1 / -1; width: 100%; order: 3; }
+      .page-tab { flex: 1; min-width: 0; padding: 0 10px; }
+      .video-shell { padding: 14px; }
+      .video-source-row { grid-template-columns: 1fr; }
+      .results-shell { padding: 14px; }
+      .results-toolbar { align-items: flex-start; flex-direction: column; }
+      .results-actions { width: 100%; }
+      .results-actions button { flex: 1; }
+      .results-frame-wrap { min-height: 520px; height: calc(100vh - 260px); }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        height: auto;
+        min-height: 82px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .table-box {
+        height: 320px !important;
+        min-height: 320px !important;
+        max-height: 320px !important;
+      }
+
+      #rows tr,
+      #rows tr.data-row td,
+      #rows tr.filler-row td {
+        height: 34px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="grain"></div>
+  <div class="orb o1"></div>
+  <div class="orb o2"></div>
+  <div class="orb o3"></div>
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="mark">ABR</div>
+      <div class="brand-title">
+        <span>NAVLLM 实时视频控制台</span>
+        <span>Adaptive Bitrate · Live Telemetry · LLM-Aware Streaming</span>
+      </div>
+    </div>
+    <nav class="page-tabs" aria-label="页面切换">
+      <button id="dataTab" class="page-tab active" type="button" onclick="switchPage('data')">当前数据</button>
+      <button id="videoTab" class="page-tab" type="button" onclick="switchPage('video')">视频对比</button>
+      <button id="resultsTab" class="page-tab" type="button" onclick="switchPage('results')">实验结果</button>
+    </nav>
+    <div class="top-actions">
+      <button class="theme-toggle" type="button" onclick="toggleTheme()" title="切换明暗主题">
+        <span id="themeThumb" class="theme-thumb">☾</span>
+      </button>
+      <div id="statusPill" class="status-pill">未连接</div>
+    </div>
+  </div>
+
+  <div id="dataPage" class="page-view active">
+  <div class="wrap">
+    <aside class="panel control-panel">
+      <h2>发送控制</h2>
+      <div class="form">
+        <div class="control-section">
+          <div class="section-title"><span>连接参数</span><span>Network</span></div>
+          <label>接收监听地址<input id="client_host" value="0.0.0.0"></label>
+          <div class="grid2">
+            <label>起始端口<input id="port" value="5001"></label>
+            <label>设备<input id="device" value="cuda:0"></label>
+          </div>
+          <div id="receiverHint" class="cmd">NAVLLM / BBA / MPC 将依次监听起始端口、起始端口 + 1、起始端口 + 2。</div>
+        </div>
+
+        <div class="control-section">
+          <div class="section-title"><span>NAVLLM 模型</span><span>Model</span></div>
+          <label>模型目录<input id="model_dir" value="data/ft_plms/try_llama2_7b"></label>
+          <label>经验池<input id="exp_pool_path" value="artifacts/exp_pools/exp_pool.pkl"></label>
+          <div class="grid2">
+            <label>PLM 类型<input id="plm_type" value="llama"></label>
+            <label>PLM 大小<input id="plm_size" value="base"></label>
+          </div>
+          <label>LoRA rank<input id="rank" value="128"></label>
+        </div>
+
+        <div id="receiverActions" class="actions">
+          <button id="startBtn" onclick="startReceivers()">启动三路接收</button>
+          <button class="danger" onclick="stopReceivers()">停止接收</button>
+        </div>
+        <button class="secondary" onclick="refreshStatus()">刷新状态</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">Realtime Control Plane</div>
+          <h1>面向 <span>NAVLLM-ABR</span> 的低时延实时决策控制台</h1>
+          <p>集成发送配置、播放器遥测、LLM 输入状态、吞吐趋势与 chunk 级运行日志，支持明暗主题切换和端到端实时可视化监控。</p>
+        </div>
+        <div class="hero-visual">
+          <div class="radar"></div>
+        </div>
+      </section>
+
+      <section class="cards">
+        <div class="card"><div class="label">当前视频码率</div><div id="bitrate" class="value">--</div><div class="sub">Kbps</div></div>
+        <div class="card"><div class="label">网络吞吐</div><div id="throughput" class="value">--</div><div class="sub">Mbps</div></div>
+        <div class="card"><div class="label">缓冲区</div><div id="buffer" class="value">--</div><div class="sub">seconds</div></div>
+        <div class="card"><div class="label">卡顿时间</div><div id="rebuf" class="value">--</div><div class="sub">seconds</div></div>
+        <div class="card"><div class="label">Reward</div><div id="reward" class="value">--</div><div class="sub">当前 chunk</div></div>
+      </section>
+
+      <section class="panel chart-panel">
+        <div class="chart-title">
+          <h2 style="padding:0">实时网络与码率</h2>
+          <div class="legend">
+            <span><i class="dot" style="background:#5b8cff;color:#5b8cff"></i>吞吐</span>
+            <span><i class="dot" style="background:#25f4b5;color:#25f4b5"></i>视频码率</span>
+            <span><i class="dot" style="background:#ffc75a;color:#ffc75a"></i>buffer</span>
+          </div>
+        </div>
+        <canvas id="chart" width="1100" height="312"></canvas>
+      </section>
+
+      <section class="split">
+        <div class="panel">
+          <h2>NAVLLM 接收明细</h2>
+          <div class="table-box">
+            <table>
+              <thead><tr><th>chunk</th><th>action</th><th>bitrate</th><th>elapsed</th><th>throughput</th><th>buffer</th><th>来源</th><th>rebuf</th><th>reward</th></tr></thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>大模型输入状态</h2>
+          <div id="params" class="params"></div>
+        </div>
+      </section>
+
+      <section class="panel comparison-panel">
+        <div class="comparison-head">
+          <h2>三算法实时性能对比</h2>
+          <div id="comparisonScope" class="comparison-scope">等待共同 chunk 数据 · 每秒刷新</div>
+        </div>
+        <div id="algorithmComparison" class="comparison-grid" aria-live="polite">
+          <div class="comparison-empty">启动三路接收并发送视频后，这里将实时汇总 NAVLLM、BBA 和 MPC。</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>NAVLLM 接收端启动命令</h2>
+        <div class="cmd-row">
+          <div id="cmd" class="cmd">--</div>
+          <button class="secondary copy-btn" onclick="copyCommand()">复制</button>
+        </div>
+      </section>
+    </main>
+  </div>
+  </div>
+
+  <div id="videoPage" class="page-view">
+    <main class="video-page">
+      <section class="panel video-shell">
+        <div class="video-page-head">
+          <div>
+            <h1>实时视频监控</h1>
+            <p id="videoDescription">同步展示 NAVLLM、BBA、MPC 三种 ABR 算法输出的视频流及运行日志。</p>
+          </div>
+          <div id="videoStatusPill" class="status-pill running">实时监控</div>
+        </div>
+
+        <div class="video-grid">
+          <article class="video-card">
+            <div class="video-card-head">
+              <h2>NAVLLM ABR 视频流</h2>
+              <span id="stream1State" class="stream-state">正在连接 HLS</span>
+            </div>
+            <div class="video-frame">
+              <video id="stream1Video" controls autoplay muted playsinline></video>
+              <div id="stream1Placeholder" class="video-placeholder">正在等待 HLS 播放列表……</div>
+            </div>
+            <div class="video-source-row">
+              <input id="hlsSource" aria-label="HLS 地址" value="/hls/netllm/index.m3u8">
+              <button type="button" onclick="loadHlsSource()">加载 HLS</button>
+            </div>
+          </article>
+
+          <article class="video-card">
+            <div class="video-card-head">
+              <h2>BBA ABR 视频流</h2>
+              <span id="stream2State" class="stream-state">等待 HLS</span>
+            </div>
+            <div class="video-frame">
+              <video id="stream2Video" controls autoplay muted playsinline></video>
+              <div id="stream2Placeholder" class="video-placeholder">正在等待 BBA 视频片段……</div>
+            </div>
+            <div class="cmd local-video-detail" style="margin-top:12px">HLS 地址：/hls/bba/index.m3u8</div>
+          </article>
+
+          <article class="video-card">
+            <div class="video-card-head">
+              <h2>MPC ABR 视频流</h2>
+              <span id="stream3State" class="stream-state">等待 HLS</span>
+            </div>
+            <div class="video-frame">
+              <video id="stream3Video" controls autoplay muted playsinline></video>
+              <div id="stream3Placeholder" class="video-placeholder">正在等待 MPC 视频片段……</div>
+            </div>
+            <div class="cmd local-video-detail" style="margin-top:12px">HLS 地址：/hls/mpc/index.m3u8</div>
+          </article>
+
+          <article class="video-card">
+            <div class="video-card-head">
+              <h2>运行日志</h2>
+              <span id="logState" class="stream-state ready">实时刷新</span>
+            </div>
+            <pre id="stdout" class="monitor-log">等待运行日志……</pre>
+            <div class="cmd local-video-detail" style="margin-top:12px">日志来源：控制器标准输出与实时发送记录</div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="resultsPage" class="page-view">
+    <main class="results-page">
+      <section class="panel results-shell">
+        <div class="results-toolbar">
+          <div class="results-title">
+            <h1>实验结果与可视化分析</h1>
+            <p id="resultsAddress">正在检查实验结果服务……</p>
+          </div>
+          <div id="resultsActions" class="results-actions">
+            <button class="secondary" type="button" onclick="reloadResults()">刷新图表</button>
+            <button type="button" onclick="openResultsWindow()">新窗口打开</button>
+          </div>
+        </div>
+        <div id="resultsFrameWrap" class="results-frame-wrap">
+          <iframe id="resultsFrame" class="results-frame" title="实验结果图表"></iframe>
+        </div>
+        <div id="demoResults" class="comparison-grid" hidden></div>
+      </section>
+    </main>
+  </div>
+
+<script src="./hls.min.js"></script>
+<script>
+const demoMode = document.documentElement.dataset.mode === "demo";
+let lastStatus = null;
+let resultsUrl = "";
+const hlsPlayers = new Map();
+const hlsRetryTimers = new Map();
+const streamDefinitions = [
+  {id: "stream1Video", state: "stream1State", placeholder: "stream1Placeholder", source: "/hls/netllm/index.m3u8", label: "NAVLLM"},
+  {id: "stream2Video", state: "stream2State", placeholder: "stream2Placeholder", source: "/hls/bba/index.m3u8", label: "BBA"},
+  {id: "stream3Video", state: "stream3State", placeholder: "stream3Placeholder", source: "/hls/mpc/index.m3u8", label: "MPC"}
+];
+
+function switchPage(page) {
+  if (!["data", "video", "results"].includes(page)) page = "data";
+  ["data", "video", "results"].forEach(name => {
+    document.getElementById(`${name}Page`).classList.toggle("active", name === page);
+    document.getElementById(`${name}Tab`).classList.toggle("active", name === page);
+  });
+  localStorage.setItem("netllm-page", page);
+  if (page === "data" && lastStatus) requestAnimationFrame(() => drawChart(lastStatus.history || []));
+  if (page === "video" && demoMode) initDemoVideos();
+  if (page === "results" && !demoMode) initResultsPanel();
+}
+
+async function initResultsPanel() {
+  const address = document.getElementById("resultsAddress");
+  const frame = document.getElementById("resultsFrame");
+  try {
+    const config = await api("/api/runtime-config");
+    const port = Number(config.results_port || 5173);
+    // The results service is a separate local HTTP service. Using the current
+    // hostname makes it reachable when this page is opened from another PC.
+    resultsUrl = `http://${location.hostname}:${port}`;
+  } catch (_) {
+    resultsUrl = `http://${location.hostname}:5173`;
+  }
+
+  let available = false;
+  try {
+    const health = await api("/api/results-health");
+    available = Boolean(health.available);
+  } catch (_) {
+    available = false;
+  }
+
+  address.textContent = available
+    ? `图表服务已连接：${resultsUrl}`
+    : `图表服务未响应：${resultsUrl}（仍可尝试刷新或新窗口打开）`;
+  address.style.color = available ? "var(--teal)" : "var(--amber)";
+  if (frame.dataset.target !== resultsUrl) {
+    frame.dataset.target = resultsUrl;
+    frame.src = resultsUrl;
+  }
+}
+
+function reloadResults() {
+  const frame = document.getElementById("resultsFrame");
+  if (!resultsUrl) return initResultsPanel();
+  frame.src = `${resultsUrl}${resultsUrl.includes("?") ? "&" : "?"}_refresh=${Date.now()}`;
+}
+
+function openResultsWindow() {
+  if (!resultsUrl) resultsUrl = `http://${location.hostname}:5173`;
+  window.open(resultsUrl, "_blank", "noopener");
+}
+
+async function loadHlsSource() {
+  const source = document.getElementById("hlsSource").value.trim();
+  if (!source) return;
+  document.getElementById("stream1Video").loop = false;
+  loadStream({...streamDefinitions[0], source}, true);
+}
+
+function destroyStream(id) {
+  const timer = hlsRetryTimers.get(id);
+  if (timer) clearTimeout(timer);
+  hlsRetryTimers.delete(id);
+  const player = hlsPlayers.get(id);
+  if (player) player.destroy();
+  hlsPlayers.delete(id);
+}
+
+function scheduleStreamRetry(item) {
+  if (hlsRetryTimers.has(item.id)) return;
+  const timer = setTimeout(() => {
+    hlsRetryTimers.delete(item.id);
+    loadStream(item, false);
+  }, 2000);
+  hlsRetryTimers.set(item.id, timer);
+}
+
+function loadStream(item, reset = false) {
+  const video = document.getElementById(item.id);
+  const state = document.getElementById(item.state);
+  const placeholder = document.getElementById(item.placeholder);
+  if (!video || !state || !placeholder) return;
+
+  destroyStream(item.id);
+  if (reset) {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+  }
+
+  state.textContent = `等待 ${item.label} 视频`;
+  state.className = "stream-state";
+  placeholder.textContent = "接收端已就绪，正在等待采集端发送视频片段……";
+  placeholder.style.display = "grid";
+
+  const ready = () => {
+    state.textContent = `${item.label} 实时画面`;
+    state.className = "stream-state ready";
+    placeholder.style.display = "none";
+    video.play().catch(() => {});
+  };
+
+  if (window.Hls && Hls.isSupported()) {
+    const player = new Hls({
+      enableWorker: true,
+      lowLatencyMode: true,
+      liveSyncDurationCount: 3,
+      liveMaxLatencyDurationCount: 10,
+      manifestLoadingMaxRetry: 0,
+    });
+    hlsPlayers.set(item.id, player);
+    player.on(Hls.Events.MANIFEST_PARSED, ready);
+    player.on(Hls.Events.ERROR, (_, data) => {
+      if (!data.fatal) return;
+      if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+        player.recoverMediaError();
+        return;
+      }
+      destroyStream(item.id);
+      state.textContent = `等待 ${item.label} 视频`;
+      placeholder.textContent = "尚无可播放片段，收到新片段后会自动重试。";
+      placeholder.style.display = "grid";
+      if (!demoMode) scheduleStreamRetry(item);
+      else placeholder.textContent = "无法播放，请检查 HLS 地址和跨域访问设置。";
+    });
+    player.loadSource(`${item.source}${item.source.includes("?") ? "&" : "?"}_=${Date.now()}`);
+    player.attachMedia(video);
+    return;
+  }
+
+  if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    video.src = item.source;
+    video.addEventListener("loadedmetadata", ready, {once: true});
+    video.addEventListener("error", () => {
+      if (!demoMode) scheduleStreamRetry(item);
+      else placeholder.textContent = "无法播放，请检查 HLS 地址和跨域访问设置。";
+    }, {once: true});
+    video.load();
+    return;
+  }
+
+  state.textContent = "浏览器不支持 HLS";
+  state.className = "stream-state error";
+  placeholder.textContent = "请使用新版 Chrome、Edge、Firefox 或 Safari。";
+}
+
+function initVideoPanel() {
+  streamDefinitions.forEach(item => loadStream(item, true));
+}
+
+function initNavigation() {
+  switchPage(localStorage.getItem("netllm-page") || "data");
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+  localStorage.setItem("netllm-theme", theme);
+  const thumb = document.getElementById("themeThumb");
+  if (thumb) thumb.textContent = theme === "dark" ? "☾" : "☀";
+  if (lastStatus) drawChart(lastStatus.history || []);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") || "dark";
+  applyTheme(current === "dark" ? "light" : "dark");
+}
+
+function initTheme() {
+  const saved = localStorage.getItem("netllm-theme");
+  if (saved === "light" || saved === "dark") return applyTheme(saved);
+  const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  applyTheme(prefersLight ? "light" : "dark");
+}
+
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function val(id) { return document.getElementById(id).value.trim(); }
+function numOrNull(v) { return v === "" ? null : Number(v); }
+
+async function api(path, body) {
+  const opt = body ? {method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body)} : {};
+  const res = await fetch(path, opt);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "request failed");
+  return data;
+}
+
+async function loadAssets() {
+  await api("/api/assets");
+}
+
+function rel(path, root) {
+  return path && root && path.startsWith(root) ? path.slice(root.length + 1).replaceAll("\\", "/") : path;
+}
+
+async function startReceivers() {
+  const body = {
+    listen_host: val("client_host") || "0.0.0.0",
+    base_port: Number(val("port") || 5001),
+    chunk_seconds: 4,
+    model_dir: val("model_dir"),
+    exp_pool_path: val("exp_pool_path"),
+    plm_type: val("plm_type"),
+    plm_size: val("plm_size"),
+    rank: Number(val("rank") || 128),
+    device: val("device"),
+    device_out: val("device")
+  };
+  try {
+    await api("/api/start", body);
+    await refreshStatus();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function stopReceivers() {
+  try {
+    await api("/api/stop", {});
+    await refreshStatus();
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function refreshStatus() {
+  if (demoMode) return;
+  try {
+    lastStatus = await api("/api/status");
+    render(lastStatus);
+  } catch (e) {
+    document.getElementById("statusPill").textContent = "后端不可用";
+  }
+}
+
+function fmt(x, n=3) {
+  if (x === null || x === undefined || Number.isNaN(x)) return "--";
+  return Number(x).toFixed(n);
+}
+
+function copyCommand() {
+  const text = document.getElementById("cmd").textContent || "";
+  if (!navigator.clipboard) return;
+  navigator.clipboard.writeText(text);
+}
+
+function render(data) {
+  const pill = document.getElementById("statusPill");
+  const algorithms = data.algorithms || {};
+  const processCount = Object.values(algorithms).filter(item => item.running).length;
+  const readyCount = Object.values(algorithms).filter(item => item.listening).length;
+  pill.textContent = data.running
+    ? "三路接收就绪"
+    : processCount > 0
+      ? `${readyCount}/3 端口就绪`
+      : "接收端已停止";
+  pill.className = "status-pill" + (data.running ? " running" : "");
+  const latest = data.latest || {};
+  const player = data.player_telemetry || {};
+  document.getElementById("bitrate").textContent = player.estimated_bitrate_kbps || player.bitrate_kbps || latest.client_bitrate_kbps || latest.video_bitrate_kbps || "--";
+  document.getElementById("throughput").textContent = fmt(latest.throughput_mbps, 2);
+  document.getElementById("buffer").textContent = fmt(player.buffer_ahead_seconds ?? latest.buffer_seconds, 2);
+  document.getElementById("rebuf").textContent = fmt(latest.rebuffer_seconds, 2);
+  document.getElementById("reward").textContent = fmt(latest.reward, 2);
+  document.getElementById("cmd").textContent = (data.command || []).join(" ");
+  document.getElementById("stdout").textContent = (data.stdout || []).join("\n");
+  renderRows(data.history || []);
+  renderAlgorithmComparison(algorithms);
+  renderParams(data.model_inputs || {});
+  drawChart(data.history || []);
+}
+
+function renderRows(history) {
+  const latestRows = history.slice(-60).reverse();
+  const minDisplayRows = 13;
+
+  const dataRows = latestRows.map(x => `
+    <tr class="data-row">
+      <td>${x.chunk_idx}</td><td>${x.action}</td><td>${x.video_bitrate_kbps}</td>
+      <td>${fmt(x.send_elapsed_seconds,2)}</td><td>${fmt(x.throughput_mbps,2)}</td>
+      <td>${fmt(x.buffer_seconds,2)}</td><td>${x.buffer_source || "--"}</td><td>${fmt(x.rebuffer_seconds,2)}</td><td>${fmt(x.reward,2)}</td>
+    </tr>`);
+
+  const fillerCount = Math.max(0, minDisplayRows - dataRows.length);
+  const fillerRows = Array.from({length: fillerCount}, (_, i) => `
+    <tr class="filler-row">
+      <td colspan="9"><span class="filler-cell">等待更多 chunk 实时数据 ${String(i + 1).padStart(2, "0")}</span></td>
+    </tr>`);
+
+  document.getElementById("rows").innerHTML = dataRows.concat(fillerRows).join("");
+}
+
+function comparisonStats(item, commonChunk) {
+  const source = Array.isArray(item?.history) ? item.history : [];
+  const history = commonChunk === null
+    ? source
+    : source.filter(x => Number(x.chunk_idx ?? x.chunk_id) <= commonChunk);
+  const number = (value, fallback=0) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+  const average = (values) => values.length
+    ? values.reduce((sum, value) => sum + value, 0) / values.length
+    : null;
+  const bitrates = history.map(x => number(x.video_bitrate_kbps ?? x.bitrate_kbps));
+  const throughputs = history.map(x => number(x.throughput_mbps));
+  let switches = 0;
+  for (let i = 1; i < bitrates.length; i++) {
+    if (bitrates[i] !== bitrates[i - 1]) switches += 1;
+  }
+  const latest = history[history.length - 1] || {};
+  return {
+    count: history.length,
+    latestBitrate: history.length ? bitrates[bitrates.length - 1] : null,
+    averageBitrate: average(bitrates),
+    averageThroughput: average(throughputs),
+    buffer: history.length ? number(latest.buffer_seconds) : null,
+    rebuffer: history.length
+      ? history.reduce((sum, x) => sum + number(x.rebuffer_seconds), 0)
+      : null,
+    reward: history.length
+      ? history.reduce((sum, x) => sum + number(x.reward), 0)
+      : null,
+    switches,
+    listening: Boolean(item?.listening),
+  };
+}
+
+function renderAlgorithmComparison(algorithms) {
+  const names = ["netllm", "bba", "mpc"];
+  const labels = {netllm: "NAVLLM", bba: "BBA", mpc: "MPC"};
+  const histories = names.map(name => algorithms[name]?.history || []);
+  const allReady = histories.every(history => history.length > 0);
+  const commonChunk = allReady
+    ? Math.min(...histories.map(history => {
+        const last = history[history.length - 1] || {};
+        return Number(last.chunk_idx ?? last.chunk_id);
+      }))
+    : null;
+  const stats = Object.fromEntries(
+    names.map(name => [name, comparisonStats(algorithms[name], commonChunk)])
+  );
+  const comparable = allReady && names.every(name => stats[name].count > 0);
+  const leaderReward = comparable
+    ? Math.max(...names.map(name => stats[name].reward))
+    : null;
+
+  const scope = document.getElementById("comparisonScope");
+  scope.textContent = comparable
+    ? `共同统计至 chunk #${commonChunk} · 每秒刷新`
+    : "等待三路共同 chunk 数据 · 每秒刷新";
+
+  const metric = (label, value, digits, unit="") => `
+    <div class="algorithm-metric">
+      <span>${label}</span>
+      <strong>${value === null ? "--" : fmt(value, digits)}${unit ? `<small>${unit}</small>` : ""}</strong>
+    </div>`;
+
+  document.getElementById("algorithmComparison").innerHTML = names.map(name => {
+    const stat = stats[name];
+    const isLeader = comparable && Math.abs(stat.reward - leaderReward) < 1e-9;
+    const badge = !stat.count
+      ? (stat.listening ? "等待数据" : "未运行")
+      : (isLeader ? "Reward 领先" : "实时统计");
+    return `
+      <article class="algorithm-card ${name}${isLeader ? " is-leader" : ""}">
+        <div class="algorithm-card-head">
+          <div class="algorithm-name">${labels[name]}</div>
+          <div class="algorithm-badge">${badge}</div>
+        </div>
+        <div class="algorithm-metrics">
+          ${metric("当前码率", stat.latestBitrate, 0, "kbps")}
+          ${metric("平均码率", stat.averageBitrate, 0, "kbps")}
+          ${metric("平均吞吐", stat.averageThroughput, 2, "Mbps")}
+          ${metric("当前 Buffer", stat.buffer, 2, "s")}
+          ${metric("累计卡顿", stat.rebuffer, 3, "s")}
+          ${metric("累计 Reward", stat.reward, 2)}
+        </div>
+        <div class="algorithm-card-foot">
+          <span>码率切换 ${stat.count ? stat.switches : "--"} 次</span>
+          <span>${stat.count} chunks</span>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+function renderParams(p) {
+  const items = [
+    ["上一次码率", JSON.stringify(p.last_bitrate || {})],
+    ["当前 buffer", JSON.stringify(p.buffer || {})],
+    ["历史 throughput", JSON.stringify(p.throughput_history_mbps || [])],
+    ["历史 download time", JSON.stringify(p.download_time_history_seconds || [])],
+    ["下一段 6 档大小", JSON.stringify(p.next_chunk_sizes_bytes || [])],
+    ["剩余 chunk", JSON.stringify(p.remaining_chunks)]
+  ];
+  document.getElementById("params").innerHTML = items.map(([k,v]) =>
+    `<div class="param"><b>${k}</b><code>${v}</code></div>`).join("");
+}
+
+function drawChart(history) {
+  const c = document.getElementById("chart");
+  const ctx = c.getContext("2d");
+  const theme = document.documentElement.getAttribute("data-theme") || "dark";
+  ctx.clearRect(0,0,c.width,c.height);
+
+  const w = c.width, h = c.height;
+  const plot = {left: 54, right: 22, top: 26, bottom: 36};
+  const pw = w - plot.left - plot.right;
+  const ph = h - plot.top - plot.bottom;
+
+  const ink = cssVar("--ink");
+  const muted = cssVar("--muted");
+  const grid = theme === "dark" ? "rgba(170,202,255,.13)" : "rgba(64,105,169,.16)";
+  const panelShade = theme === "dark" ? "rgba(91,140,255,.08)" : "rgba(45,104,255,.06)";
+
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, panelShade);
+  bg.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = bg;
+  ctx.fillRect(plot.left, plot.top, pw, ph);
+
+  ctx.strokeStyle = grid;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 7]);
+  for (let i = 0; i <= 5; i++) {
+    const y = plot.top + i * ph / 5;
+    ctx.beginPath(); ctx.moveTo(plot.left, y); ctx.lineTo(w - plot.right, y); ctx.stroke();
+  }
+  for (let i = 0; i <= 8; i++) {
+    const x = plot.left + i * pw / 8;
+    ctx.beginPath(); ctx.moveTo(x, plot.top); ctx.lineTo(x, h - plot.bottom); ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  const data = history.slice(-80);
+  if (data.length < 2) {
+    ctx.fillStyle = muted;
+    ctx.font = "13px Segoe UI";
+    ctx.fillText("等待实时数据输入...", plot.left + 4, plot.top + 26);
+    return;
+  }
+
+  const maxTp = Math.max(1, ...data.map(x => x.throughput_mbps || 0));
+  const maxBuf = Math.max(10, ...data.map(x => x.buffer_seconds || 0));
+  const xAt = i => plot.left + i * (pw / Math.max(1, data.length - 1));
+  const yTp = v => h - plot.bottom - (v / maxTp) * ph;
+  const yBr = v => h - plot.bottom - (v / 4300) * ph;
+  const yBuf = v => h - plot.bottom - (v / maxBuf) * ph;
+
+  areaLine(data.map(x => x.throughput_mbps || 0), xAt, yTp, "#5b8cff", theme === "dark" ? "rgba(91,140,255,.18)" : "rgba(45,104,255,.14)", h - plot.bottom);
+  glowLine(data.map(x => x.video_bitrate_kbps || 0), xAt, yBr, "#25f4b5");
+  glowLine(data.map(x => x.buffer_seconds || 0), xAt, yBuf, "#ffc75a");
+
+  ctx.strokeStyle = theme === "dark" ? "rgba(210,230,255,.25)" : "rgba(64,105,169,.26)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(plot.left, plot.top, pw, ph);
+
+  ctx.fillStyle = ink;
+  ctx.font = "12px Segoe UI";
+  ctx.fillText(`Throughput max ${maxTp.toFixed(1)} Mbps`, plot.left + 8, 18);
+
+  const last = data[data.length - 1] || {};
+  ctx.textAlign = "right";
+  ctx.fillText(`Latest ${fmt(last.throughput_mbps, 2)} Mbps / ${last.video_bitrate_kbps || "--"} Kbps`, w - plot.right, 18);
+  ctx.textAlign = "left";
+}
+
+function glowLine(values, xAt, yAt, color) {
+  const ctx = document.getElementById("chart").getContext("2d");
+  ctx.save();
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = .22;
+  ctx.lineWidth = 9;
+  ctx.beginPath();
+  values.forEach((v, i) => {
+    const x = xAt(i), y = yAt(v);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  ctx.globalAlpha = 1;
+  ctx.lineWidth = 2.6;
+  ctx.beginPath();
+  values.forEach((v, i) => {
+    const x = xAt(i), y = yAt(v);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  const lastX = xAt(values.length - 1);
+  const lastY = yAt(values[values.length - 1]);
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 16;
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, 4.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function areaLine(values, xAt, yAt, color, fill, baseY) {
+  const ctx = document.getElementById("chart").getContext("2d");
+  ctx.save();
+
+  const grad = ctx.createLinearGradient(0, 24, 0, baseY);
+  grad.addColorStop(0, fill);
+  grad.addColorStop(1, "rgba(91,140,255,0)");
+
+  ctx.beginPath();
+  values.forEach((v, i) => {
+    const x = xAt(i), y = yAt(v);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.lineTo(xAt(values.length - 1), baseY);
+  ctx.lineTo(xAt(0), baseY);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  glowLine(values, xAt, yAt, color);
+  ctx.restore();
+}
+
+function initDemoVideos() {
+  for (const item of streamDefinitions) {
+    const video = document.getElementById(item.id);
+    if (video.dataset.demoLoaded) continue;
+    const placeholder = document.getElementById(item.placeholder);
+    video.dataset.demoLoaded = "true";
+    video.autoplay = false;
+    video.loop = true;
+    video.addEventListener("loadeddata", () => { placeholder.style.display = "none"; }, {once: true});
+    video.src = "./demo.webm";
+  }
+}
+
+function initDemo() {
+  const throughput = [5.2, 4.7, 3.8, 2.4, 1.9, 2.7, 3.1, 4.4, 5.1, 4.8, 3.6, 4.2, 5.4];
+  const tiers = [300, 750, 1200, 1850, 2850, 4300];
+  const decisions = {
+    netllm: [3, 4, 4, 3, 2, 2, 3, 3, 4, 4, 3, 4, 4],
+    bba: [1, 2, 3, 4, 4, 3, 2, 2, 3, 3, 4, 4, 4],
+    mpc: [2, 3, 3, 3, 3, 2, 2, 3, 4, 4, 4, 3, 4]
+  };
+  const algorithms = Object.fromEntries(Object.entries(decisions).map(([name, actions]) => [
+    name,
+    {history: actions.map((action, index) => {
+      const bitrate = tiers[action];
+      const elapsed = bitrate * 4 / (throughput[index] * 1000);
+      const rebuffer = elapsed > 4 ? elapsed - 4 : 0;
+      const change = index ? Math.abs(bitrate - tiers[actions[index - 1]]) : 0;
+      return {
+        chunk_idx: index + 1, action, video_bitrate_kbps: bitrate,
+        throughput_mbps: throughput[index], send_elapsed_seconds: elapsed,
+        buffer_seconds: 4 + Math.min(6, (4 - elapsed) * 1.8), buffer_source: "示例",
+        rebuffer_seconds: rebuffer, reward: (bitrate - change) / 1000 - 4.3 * rebuffer
+      };
+    })}
+  ]));
+  const history = algorithms.netllm.history;
+  const latest = history.at(-1);
+  lastStatus = {
+    algorithms, history, latest,
+    command: ["python", "web_controller.py", "--host", "127.0.0.1", "--port", "8088"],
+    stdout: history.map(row => `[示例] chunk ${row.chunk_idx} · ${row.video_bitrate_kbps} kbps · ${row.throughput_mbps} Mbps`),
+    model_inputs: {
+      last_bitrate: history.at(-2).video_bitrate_kbps,
+      buffer: latest.buffer_seconds.toFixed(2),
+      throughput_history_mbps: throughput.slice(-5),
+      download_time_history_seconds: history.slice(-5).map(row => Number(row.send_elapsed_seconds.toFixed(2))),
+      next_chunk_sizes_bytes: tiers.map(bitrate => bitrate * 500),
+      remaining_chunks: 12
+    }
+  };
+  render(lastStatus);
+  document.getElementById("statusPill").textContent = "演示模式";
+  document.getElementById("receiverHint").textContent = "当前展示示例数据。启动本地 Python 控制台后可控制接收端。";
+  document.getElementById("comparisonScope").textContent = `示例数据 · ${history.length} 个 chunk`;
+  document.querySelectorAll(".algorithm-badge").forEach(badge => { badge.textContent = "示例统计"; });
+  document.querySelectorAll("#receiverActions button, button[onclick='refreshStatus()']").forEach(button => {
+    button.disabled = true;
+    button.title = "请启动本地 Python 控制台以控制接收端";
+  });
+  document.getElementById("videoStatusPill").textContent = "演示模式";
+  document.getElementById("videoDescription").textContent = "三路播放器共用同一段示例动画。";
+  for (const item of streamDefinitions) {
+    document.getElementById(item.state).textContent = "示例视频";
+    document.getElementById(item.placeholder).textContent = "正在加载示例视频……";
+  }
+  const source = document.getElementById("hlsSource");
+  source.value = "";
+  source.placeholder = "输入可公开访问的 HTTPS HLS 地址";
+  document.getElementById("logState").textContent = "示例日志";
+  document.querySelectorAll(".local-video-detail").forEach(detail => { detail.hidden = true; });
+  document.getElementById("resultsAddress").textContent = "以下汇总基于演示数据。完整实验图表由本地结果服务提供。";
+  document.getElementById("resultsActions").hidden = true;
+  document.getElementById("resultsFrameWrap").hidden = true;
+  const results = document.getElementById("demoResults");
+  results.append(...Array.from(document.getElementById("algorithmComparison").children, card => card.cloneNode(true)));
+  results.hidden = false;
+}
+
+initTheme();
+if (demoMode) {
+  initDemo();
+} else {
+  initVideoPanel();
+  loadAssets().catch(() => {}).then(refreshStatus);
+  setInterval(refreshStatus, 1000);
+}
+initNavigation();
+</script>
+</body>
+</html>

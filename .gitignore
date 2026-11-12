@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+*.log
+/hls/
+/sender_runtime/
+/video_chunk_tools/generated/
+/data/
+/artifacts/
+*.pkl
+*.pt
+*.pth
+*.safetensors

@@ -1,0 +1,5 @@
+# elapsed_seconds    limit_mbps
+0                    0.5
+40                   0.9
+80                   0.5
+110                  0.8
